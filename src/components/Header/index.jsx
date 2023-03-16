@@ -62,7 +62,7 @@ const Header = (props) => {
   return (
     <Nav>
       <Left>
-        <Title>ATTESTATIONSTATION <TitleAccent>INTERFACE</TitleAccent></Title>
+        <Title>Attestation Station <TitleAccent>Explorer</TitleAccent></Title>
       </Left>
 
       <Right>
@@ -70,13 +70,13 @@ const Header = (props) => {
           active={props.activeContent === 0}
           onClick={() => props.setActiveContent(0)}
         >
-          New attesation
+          Home - Search
         </Link>
         <Link
           active={props.activeContent === 1}
           onClick={() => props.setActiveContent(1)}
         >
-          Read attestation
+          Create attestation
         </Link>
         <Link
           active={props.activeContent === 2}

@@ -28,10 +28,10 @@ const Content = (props) => {
   useEffect(() => {
     switch (props.activeContent) {
       case 0:
-        setContent(<NewAttestation />)
+        setContent(<ReadAttestation />)
         break
       case 1:
-        setContent(<ReadAttestation />)
+        setContent(<NewAttestation />)
         break
       case 2:
         setContent(<About />)

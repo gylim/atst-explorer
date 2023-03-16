@@ -5,6 +5,10 @@
   "dependencies": {
     "@rainbow-me/rainbowkit": "^0.7.4",
     "ethers": "^5.7.2",
+    "fs": "^0.0.1-security",
+    "os": "^0.1.2",
+    "papaparse": "^5.4.0",
+    "path": "^0.12.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",

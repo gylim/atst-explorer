@@ -7,15 +7,17 @@ import {
   useWaitForTransaction,
   useNetwork
 } from 'wagmi'
+import Papa from 'papaparse'
 import { AttestationStationAddress } from '../../constants/addresses'
 import AttestationStationABI from '../../constants/abi.json'
 
 import { AttestForm, FormRow, FormLabel } from '../StyledFormComponents'
 import Tooltip from '../Tooltip'
-import { H2 } from '../OPStyledTypography'
+import { H2, Body18 } from '../OPStyledTypography'
 import { TextInput } from '../OPStyledTextInput'
 import { PrimaryButton } from '../OPStyledButton'
 import { Select } from '../OPStyledSelect'
+import { FileInput } from '../OPStyledFileInput'
 
 const AttestationTypeSelect = styled(Select)`
   color: ${props => (props.value === 'default' ? '#8496AE' : 'inherit')}
@@ -66,6 +68,8 @@ const NewAttestation = () => {
     key,
     val
   })
+  const [file, setFile] = useState(null)
+  const [CSVData, setCSVData] = useState()
 
   const [isAboutValid, setIsAboutValid] = useState(false)
   const [isKeyValid, setIsKeyValid] = useState(false)
@@ -129,6 +133,22 @@ const NewAttestation = () => {
     hash: data?.hash
   })
 
+  const parsing = () => {
+    if (file) {
+      Papa.parse(file, {
+        header: true,
+        complete: (result) => setCSVData(result.data),
+        error: (err, _) => console.log(err)
+      })
+    } else {
+      console.log('No file available')
+    }
+  }
+
+  const printData = () => {
+    return CSVData ? <Body18>{JSON.stringify(CSVData)}</Body18> : <Body18>No File Loaded</Body18>
+  }
+
   return (
     <>
       <H2>New attestation</H2>
@@ -145,11 +165,12 @@ const NewAttestation = () => {
             onChange={(e) => setAttestationType(e.target.value)}
           >
             <option value="default" hidden>Select attestation type</option>
-            <option value="custom">Custom attestation</option>
+            <option value="single">Single attestation</option>
+            <option value="multi">Batch attestation</option>
             <option value="soon" disabled>More schemas coming soon</option>
           </AttestationTypeSelect>
         </FormRow>
-        {attestationType === 'custom'
+        {attestationType === 'single'
           ? <>
             <FormRow>
               <FormLabel>
@@ -247,6 +268,48 @@ const NewAttestation = () => {
                 valid={isValValid}
               />
             </FormRow>
+            <FormButton>
+              <PrimaryButton disabled={!write || isLoading || !(isAboutValid && isKeyValid && isValValid)}>
+                {isLoading ? 'Making attestion' : 'Make attestation'}
+              </PrimaryButton>
+            </FormButton>
+            {isSuccess && (
+              <FeedbackMessage>
+                Successfully made attestation:&nbsp;
+                <Link
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  href={`${etherscanBaseLink}${data?.hash}`}>
+                    etherscan transaction
+                </Link>
+              </FeedbackMessage>
+            )}
+          </>
+          : <></>}
+        {attestationType === 'multi'
+          ? <>
+            <FormRow>
+              <FormLabel>
+                Attestation Data&nbsp;
+                <Tooltip>
+                  <ul>
+                    <li>
+                      Upload a file with a table of attestation data
+                    </li>
+                    <li>
+                      First column is about, second column is key, third column is value.
+                    </li>
+                  </ul>
+                </Tooltip>
+              </FormLabel>
+              <FileInput type='file' onChange={(e) => setFile(e.target.files[0])}/>
+            </FormRow>
+            <FormRow>
+              <PrimaryButton type='button' onClick={parsing}>Parse CSV</PrimaryButton>
+            </FormRow>
+
+            {printData()}
+
             <FormButton>
               <PrimaryButton disabled={!write || isLoading || !(isAboutValid && isKeyValid && isValValid)}>
                 {isLoading ? 'Making attestion' : 'Make attestation'}

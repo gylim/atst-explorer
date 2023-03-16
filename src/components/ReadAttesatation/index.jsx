@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 import styled from 'styled-components'
-import { useContractRead } from 'wagmi'
-import { AttestationStationAddress } from '../../constants/addresses'
-import AttestationStationABI from '../../constants/abi.json'
+// import { useContractRead } from 'wagmi'
+// import { AttestationStationAddress } from '../../constants/addresses'
+// import AttestationStationABI from '../../constants/abi.json'
 
+import { PrimaryButton } from '../OPStyledButton'
 import { AttestForm, FormRow, FormLabel } from '../StyledFormComponents'
 import { TextInput } from '../OPStyledTextInput'
 import { H2 } from '../OPStyledTypography'
@@ -27,33 +28,45 @@ const ReadAttestation = () => {
   const [about, setAbout] = useState('')
   const [key, setKey] = useState('')
   const [bytes32Key, setBytes32Key] = useState('')
+  const [data, setData] = useState('')
 
   const [isCreatorValid, setIsCreatorValid] = useState(false)
   const [isAboutValid, setIsAboutValid] = useState(false)
   const [isKeyValid, setIsKeyValid] = useState(false)
 
-  const { data, error, isError } = useContractRead({
-    address: AttestationStationAddress,
-    abi: AttestationStationABI,
-    functionName: 'attestations',
-    args: [creator, about, bytes32Key],
-    enabled: Boolean(creator) && Boolean(about) && Boolean(bytes32Key)
-  })
+  let err
+
+  const options = { method: 'GET', headers: { accept: 'application/json' } }
+  const searchAttestURL = 'https://api.n.xyz/api/v1/dapp/attestationstation/Attestations?'
+  const apiKey = `apikey=${process.env.}`
+  const composeURL = () => {
+    const temp = [
+      creator ? `creator=${creator}` : '',
+      about ? `about=${about}` : '',
+      bytes32Key ? `key=${bytes32Key}` : ''
+    ]
+    const num = temp.reduce((acc, cur) => acc + Number(cur.length > 0), 0)
+    if (num === 0) return `${searchAttestURL}${apiKey}`
+    if (num === 1) return `${searchAttestURL}${temp.join('')}&${apiKey}`
+    if (num >= 2) return `${searchAttestURL}${temp.join('&')}&${apiKey}`
+  }
+
+  const handleSearch = async () => {
+    const response = await fetch(composeURL(), options)
+    if (!response.ok) err = response
+    const results = await response.json()
+    setData(JSON.stringify(results))
+  }
 
   useEffect(() => {
     setIsCreatorValid(ethers.utils.isAddress(creator))
     setIsAboutValid(ethers.utils.isAddress(about))
     setIsKeyValid(key !== '')
-    if (isError) {
-      console.error(error)
-      console.error(error.value)
-      console.error(error.code)
-    }
-  }, [creator, about, key, isError, error])
+  }, [creator, about, key])
 
   return (
     <>
-      <H2>Read attestation</H2>
+      <H2>Search attestations</H2>
       <AttestForm>
         <FormRow>
           <FormLabel>Creator&apos;s address</FormLabel>
@@ -96,30 +109,16 @@ const ReadAttestation = () => {
             valid={isKeyValid}
           />
         </FormRow>
-        {data
-          ? <>
-              <FormRow>
-                <FormLabel>Value</FormLabel>
-                <Textarea
-                  readOnly
-                  value={data}
-                />
-              </FormRow>
+        <PrimaryButton type='button' onClick={handleSearch}>
+            Search
+        </PrimaryButton>
+        {data ? <Textarea>{data}</Textarea> : <></>}
 
-              <FormRow>
-                <FormLabel>String formatted value</FormLabel>
-                <Textarea
-                  readOnly
-                  value={data ? ethers.utils.toUtf8String(data) : ''}
-                />
-              </FormRow>
-          </>
-          : <></>
-        }
-        {(isError) && (
+        {(err) && (
           <div>
             <FormLabel>
-              Error: {(error)?.message}
+              Error: {err.status}
+              {err.statusText}
             </FormLabel>
           </div>
         )}
