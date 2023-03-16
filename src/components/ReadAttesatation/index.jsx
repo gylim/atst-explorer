@@ -38,7 +38,7 @@ const ReadAttestation = () => {
 
   const options = { method: 'GET', headers: { accept: 'application/json' } }
   const searchAttestURL = 'https://api.n.xyz/api/v1/dapp/attestationstation/Attestations?'
-  const apiKey = `apikey=${process.env.}`
+  const apiKey = `apikey=${process.env}`
   const composeURL = () => {
     const temp = [
       creator ? `creator=${creator}` : '',
