@@ -38,7 +38,7 @@ const ReadAttestation = () => {
 
   const options = { method: 'GET', headers: { accept: 'application/json' } }
   const searchAttestURL = 'https://api.n.xyz/api/v1/dapp/attestationstation/Attestations?'
-  const apiKey = `apikey=${process.env}`
+  const apiKey = `apikey=${process.env.REACT_APP_NXYZ_KEY}`
   const composeURL = () => {
     const temp = [
       creator ? `creator=${creator}` : '',
@@ -51,6 +51,7 @@ const ReadAttestation = () => {
     if (num >= 2) return `${searchAttestURL}${temp.join('&')}&${apiKey}`
   }
 
+  // I'm getting an error with this fetch API call
   const handleSearch = async () => {
     const response = await fetch(composeURL(), options)
     if (!response.ok) err = response
