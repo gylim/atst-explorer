@@ -90,6 +90,20 @@ const NewAttestation = () => {
   })
   const { data, error, isError, write } = useContractWrite(config)
 
+  // const {
+  //   config2,
+  //   error: prepareError2,
+  //   isError: isPrepareError
+  // } = usePrepareContractWrite({
+  //   address: AttestationStationAddress,
+  //   abi: AttestationStationABI,
+  //   functionName: 'attest',
+  //   args: [
+  //     [attestation]
+  //   ],
+  //   enabled: Boolean(about) && Boolean(key) && Boolean(val)
+  // })
+
   useEffect(() => {
     try {
       if (chain.name === 'Optimism') {
