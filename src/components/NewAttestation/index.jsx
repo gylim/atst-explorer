@@ -332,7 +332,7 @@ const NewAttestation = () => {
               />
             </FormRow>
             <FormButton>
-              <PrimaryButton disabled={!write || isLoading || !(isAboutValid && isKeyValid && isValValid)} type='button' onClick={write?.()}>
+              <PrimaryButton disabled={!write || isLoading || !(isAboutValid && isKeyValid && isValValid)} type='button' onClick={() => write?.()}>
                 {isLoading ? 'Making attestion' : 'Make attestation'}
               </PrimaryButton>
             </FormButton>
@@ -380,7 +380,7 @@ const NewAttestation = () => {
             {printErr()}
 
             <FormButton>
-              <PrimaryButton disabled={!write2 || isLoading2 || !isAllValid} type='button' onClick={write2?.()}>
+              <PrimaryButton disabled={!write2 || isLoading2 || !isAllValid} type='button' onClick={() => write2?.()}>
                 {isLoading2 ? 'Making Multi-attest' : 'Make Multi-attest'}
               </PrimaryButton>
             </FormButton>
