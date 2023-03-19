@@ -70,10 +70,13 @@ const NewAttestation = () => {
   })
   const [file, setFile] = useState(null)
   const [CSVData, setCSVData] = useState()
+  const [attestations, setAttestations] = useState([])
 
   const [isAboutValid, setIsAboutValid] = useState(false)
   const [isKeyValid, setIsKeyValid] = useState(false)
   const [isValValid, setIsValValid] = useState(false)
+  const [isAllValid, setIsAllValid] = useState(false)
+  const [validateErr, setValidateErr] = useState('')
 
   const {
     config,
@@ -86,23 +89,24 @@ const NewAttestation = () => {
     args: [
       [attestation]
     ],
-    enabled: Boolean(about) && Boolean(key) && Boolean(val)
+    enabled: (Boolean(about) && Boolean(key) && Boolean(val))
   })
   const { data, error, isError, write } = useContractWrite(config)
 
-  // const {
-  //   config2,
-  //   error: prepareError2,
-  //   isError: isPrepareError
-  // } = usePrepareContractWrite({
-  //   address: AttestationStationAddress,
-  //   abi: AttestationStationABI,
-  //   functionName: 'attest',
-  //   args: [
-  //     [attestation]
-  //   ],
-  //   enabled: Boolean(about) && Boolean(key) && Boolean(val)
-  // })
+  const {
+    config: config2,
+    error: prepareError2,
+    isError: isPrepareError2
+  } = usePrepareContractWrite({
+    address: AttestationStationAddress,
+    abi: AttestationStationABI,
+    functionName: 'attest',
+    args: [
+      ...attestations
+    ],
+    enabled: Boolean(attestations.length)
+  })
+  const { data: data2, error: error2, isError: isError2, write: write2 } = useContractWrite(config2)
 
   useEffect(() => {
     try {
@@ -119,19 +123,10 @@ const NewAttestation = () => {
 
   useEffect(() => {
     try {
-      let attest
-      if (key.length > 31) {
-        attest = {
-          about,
-          key: hashedKey,
-          val: ethers.utils.toUtf8Bytes(val === '' ? '0x' : val)
-        }
-      } else {
-        attest = {
-          about,
-          key: ethers.utils.formatBytes32String(key === '' ? '0x' : key),
-          val: ethers.utils.toUtf8Bytes(val === '' ? '0x' : val)
-        }
+      const attest = {
+        about,
+        key: key.length > 31 ? hashedKey : ethers.utils.formatBytes32String(key === '' ? '0x' : key),
+        val: ethers.utils.toUtf8Bytes(val === '' ? '0x' : val)
       }
       setAttestation(attest)
     } catch (e) {
@@ -147,6 +142,8 @@ const NewAttestation = () => {
     hash: data?.hash
   })
 
+  const { isLoading: isLoading2, isSuccess: isSuccess2 } = useWaitForTransaction({ hash: data2?.hash })
+
   const parsing = () => {
     if (file) {
       Papa.parse(file, {
@@ -159,19 +156,73 @@ const NewAttestation = () => {
     }
   }
 
+  const handleKey = (key) => {
+    if (key.length < 32) return ethers.utils.formatBytes32String(key === '' ? '0x' : key)
+    else return ethers.utils.keccak256(ethers.utils.toUtf8Bytes(key))
+  }
+
+  const checkMultiAttest = (attestArray) => {
+    if (attestArray) {
+      const checkAdd = []
+      const checkKey = []
+      const checkVal = []
+      let outcome = 'Errors detected\n '
+      attestArray.forEach((ele, idx) => {
+        if (!ethers.utils.isAddress(ele.about)) checkAdd.push(idx)
+        if (ele.key === '') checkKey.push(idx)
+        if (ele.val === '') checkVal.push(idx)
+      })
+      if (!checkAdd.length && !checkKey.length && !checkVal.length) {
+        setIsAllValid(true)
+      } else {
+        if (checkAdd.length) outcome += `Please check addresses in rows ${checkAdd.join(', ')}.\n`
+        if (checkKey.length) outcome += `Please check keys in rows ${checkKey.join(', ')}.\n`
+        if (checkVal.length) outcome += `Please check values in rows ${checkVal.join(', ')}`
+        setValidateErr(outcome)
+      }
+    } else {
+      console.log('No attest array detected')
+    }
+  }
+
+  useEffect(() => {
+    const prepareAttestations = () => {
+      if (CSVData) {
+        const prep = CSVData.map((ele) => {
+          const about = ele.about
+          return [{
+            about,
+            key: handleKey(ele.key),
+            val: ethers.utils.toUtf8Bytes(ele.val === '' ? '0x' : ele.val)
+          }]
+        })
+        setAttestations(prep)
+      } else {
+        console.log('No CSV data')
+      }
+    }
+    prepareAttestations()
+    checkMultiAttest(CSVData)
+  }, [CSVData])
+
+  useEffect(() => {
+    console.log(...attestations)
+  }, [attestations])
+
   const printData = () => {
-    return CSVData ? <Body18>{JSON.stringify(CSVData)}</Body18> : <Body18>No File Loaded</Body18>
+    return CSVData ? <Body18>{JSON.stringify(CSVData, null, 1)}</Body18> : <Body18>No File Loaded</Body18>
+  }
+
+  const printErr = () => {
+    if (CSVData && validateErr) return <Body18>{validateErr}</Body18>
+    else if (CSVData && isAllValid) return <Body18>All data checked correct!</Body18>
+    else return <></>
   }
 
   return (
     <>
       <H2>New attestation</H2>
-      <AttestForm
-        onSubmit={(e) => {
-          e.preventDefault()
-          write?.()
-        }}
-      >
+      <AttestForm>
         <FormRow>
           <FormLabel>Attestation type</FormLabel>
           <AttestationTypeSelect
@@ -219,9 +270,7 @@ const NewAttestation = () => {
                   const key = e.target.value
                   if (key.length > 31) {
                     setKey(key)
-                    const bytesLikeKey = ethers.utils.toUtf8Bytes(key)
-                    const keccak256HashedKey = ethers.utils.keccak256(bytesLikeKey)
-                    setHashedKey(keccak256HashedKey)
+                    setHashedKey(handleKey(key))
                   } else {
                     setKey(key)
                     setHashedKey('')
@@ -283,7 +332,7 @@ const NewAttestation = () => {
               />
             </FormRow>
             <FormButton>
-              <PrimaryButton disabled={!write || isLoading || !(isAboutValid && isKeyValid && isValValid)}>
+              <PrimaryButton disabled={!write || isLoading || !(isAboutValid && isKeyValid && isValValid)} type='button' onClick={write?.()}>
                 {isLoading ? 'Making attestion' : 'Make attestation'}
               </PrimaryButton>
             </FormButton>
@@ -296,6 +345,11 @@ const NewAttestation = () => {
                   href={`${etherscanBaseLink}${data?.hash}`}>
                     etherscan transaction
                 </Link>
+              </FeedbackMessage>
+            )}
+            {(isPrepareError || isError) && (
+              <FeedbackMessage>
+                  Error: {(prepareError || error)?.message}
               </FeedbackMessage>
             )}
           </>
@@ -311,7 +365,7 @@ const NewAttestation = () => {
                       Upload a file with a table of attestation data
                     </li>
                     <li>
-                      First column is about, second column is key, third column is value.
+                      First column is <u>about</u>, second column is <u>key</u>, third column is <u>value</u>
                     </li>
                   </ul>
                 </Tooltip>
@@ -323,30 +377,31 @@ const NewAttestation = () => {
             </FormRow>
 
             {printData()}
+            {printErr()}
 
             <FormButton>
-              <PrimaryButton disabled={!write || isLoading || !(isAboutValid && isKeyValid && isValValid)}>
-                {isLoading ? 'Making attestion' : 'Make attestation'}
+              <PrimaryButton disabled={!write2 || isLoading2 || !isAllValid} type='button' onClick={write2?.()}>
+                {isLoading2 ? 'Making Multi-attest' : 'Make Multi-attest'}
               </PrimaryButton>
             </FormButton>
-            {isSuccess && (
+            {isSuccess2 && (
               <FeedbackMessage>
                 Successfully made attestation:&nbsp;
                 <Link
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={`${etherscanBaseLink}${data?.hash}`}>
+                  href={`${etherscanBaseLink}${data2?.hash}`}>
                     etherscan transaction
                 </Link>
               </FeedbackMessage>
             )}
+            {(isPrepareError2 || isError2) && (
+              <FeedbackMessage>
+                  Error: {(prepareError2 || error2)?.message}
+              </FeedbackMessage>
+            )}
           </>
           : <></>}
-        {(isPrepareError || isError) && (
-          <FeedbackMessage>
-              Error: {(prepareError || error)?.message}
-          </FeedbackMessage>
-        )}
       </AttestForm>
     </>
   )
