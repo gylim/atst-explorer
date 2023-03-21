@@ -102,7 +102,7 @@ const NewAttestation = () => {
     abi: AttestationStationABI,
     functionName: 'attest',
     args: [
-      ...attestations
+      attestations
     ],
     enabled: Boolean(attestations.length)
   })
@@ -190,11 +190,11 @@ const NewAttestation = () => {
       if (CSVData) {
         const prep = CSVData.map((ele) => {
           const about = ele.about
-          return [{
+          return {
             about,
             key: handleKey(ele.key),
             val: ethers.utils.toUtf8Bytes(ele.val === '' ? '0x' : ele.val)
-          }]
+          }
         })
         setAttestations(prep)
       } else {
@@ -380,7 +380,7 @@ const NewAttestation = () => {
             {printErr()}
 
             <FormButton>
-              <PrimaryButton disabled={!write2 || isLoading2 || !isAllValid} type='button' onClick={() => write2?.()}>
+              <PrimaryButton disabled={!write2 || isLoading2} type='button' onClick={() => write2?.()}>
                 {isLoading2 ? 'Making Multi-attest' : 'Make Multi-attest'}
               </PrimaryButton>
             </FormButton>
