@@ -70,17 +70,23 @@ const Header = (props) => {
           active={props.activeContent === 0}
           onClick={() => props.setActiveContent(0)}
         >
-          Home - Search
+          Home
         </Link>
         <Link
           active={props.activeContent === 1}
           onClick={() => props.setActiveContent(1)}
         >
-          Create attestation
+          Search attestation
         </Link>
         <Link
           active={props.activeContent === 2}
           onClick={() => props.setActiveContent(2)}
+        >
+          Create attestation
+        </Link>
+        <Link
+          active={props.activeContent === 3}
+          onClick={() => props.setActiveContent(3)}
         >
           About
         </Link>

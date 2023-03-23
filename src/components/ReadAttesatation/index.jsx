@@ -29,12 +29,14 @@ const ReadAttestation = () => {
   const [creator, setCreator] = useState('')
   const [about, setAbout] = useState('')
   const [key, setKey] = useState('')
+  const [txHash, setTxHash] = useState('')
   const [bytes32Key, setBytes32Key] = useState('')
   const [data, setData] = useState()
 
   const [isCreatorValid, setIsCreatorValid] = useState(false)
   const [isAboutValid, setIsAboutValid] = useState(false)
   const [isKeyValid, setIsKeyValid] = useState(false)
+  const [isTxHashValid, setIsTxHashValid] = useState(false)
 
   let err
 
@@ -44,7 +46,8 @@ const ReadAttestation = () => {
     const temp = [
       creator ? `creator=${creator}` : '',
       about ? `about=${about}` : '',
-      bytes32Key ? `key=${bytes32Key}` : ''
+      bytes32Key ? `key=${bytes32Key}` : '',
+      txHash ? `transactionHash=${txHash}` : ''
     ]
     const num = temp.reduce((acc, cur) => acc + Number(cur.length > 0), 0)
     if (num === 0) return `${searchAttestURL}${apiKey}`
@@ -57,7 +60,6 @@ const ReadAttestation = () => {
     fetch(composeURL(), options)
       .then(response => response.json())
       .then(response => {
-        console.log(...response)
         setData(response)
       })
       .catch(error => (err = error))
@@ -71,7 +73,8 @@ const ReadAttestation = () => {
     setIsCreatorValid(ethers.utils.isAddress(creator))
     setIsAboutValid(ethers.utils.isAddress(about))
     setIsKeyValid(key !== '')
-  }, [creator, about, key])
+    setIsTxHashValid(/^0x([A-Fa-f0-9]{64})$/.test(txHash))
+  }, [creator, about, key, txHash])
 
   return (
     <>
@@ -103,7 +106,7 @@ const ReadAttestation = () => {
           <FormLabel>Attestation key</FormLabel>
           <TextInput
             type="text"
-            placeholder="Attestation key"
+            placeholder="What's this attestation about"
             onChange={(e) => {
               const key = e.target.value
               if (key.length > 31) {
@@ -118,7 +121,19 @@ const ReadAttestation = () => {
             valid={isKeyValid}
           />
         </FormRow>
-        <PrimaryButton type='button' onClick={handleSearch}>
+
+        <FormRow>
+          <FormLabel>Transaction Hash</FormLabel>
+          <TextInput
+            type="text"
+            placeholder="What's the transaction hash?"
+            onChange={(e) => setTxHash(e.target.value)}
+            value={txHash}
+            valid={isTxHashValid}
+          />
+        </FormRow>
+
+        <PrimaryButton type='button' onClick={handleSearch} disabled={!isCreatorValid || !isAboutValid || !isKeyValid || !isTxHashValid}>
             Search
         </PrimaryButton>
         {data

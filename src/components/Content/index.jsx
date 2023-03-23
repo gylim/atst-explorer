@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react'
 import styled from 'styled-components'
+import Home from '../Home'
 import NewAttestation from '../NewAttestation'
 import ReadAttestation from '../ReadAttesatation'
 import About from '../About'
@@ -23,17 +24,20 @@ const Section = styled.div`
 `
 
 const Content = (props) => {
-  const [content, setContent] = useState(<NewAttestation/>)
+  const [content, setContent] = useState(<Home />)
 
   useEffect(() => {
     switch (props.activeContent) {
       case 0:
-        setContent(<ReadAttestation />)
+        setContent(<Home />)
         break
       case 1:
-        setContent(<NewAttestation />)
+        setContent(<ReadAttestation />)
         break
       case 2:
+        setContent(<NewAttestation />)
+        break
+      case 3:
         setContent(<About />)
         break
       default:

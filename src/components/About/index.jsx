@@ -34,17 +34,16 @@ const AboutAttestations = () => {
         about other addresses.
       </Body16>
 
-      <SubSection>What&apos;s the AttestationStation Interface?</SubSection>
+      <SubSection>What&apos;s AttestationStation Explorer?</SubSection>
       <Body16>
-        A <Bold>no-code open source solution to start making your own attestations </Bold>
-        from your favorite soyboy (: If you&apos;d like to make a contribution or
-        report an issue; please head over to the&nbsp;
+        A <Bold>no-code open source solution to explore and make attestations </Bold>
+        forked from sbvegan&apos;s implementation of the&nbsp;
         <Link
           target="_blank"
           rel="noopener noreferrer"
-          href="https://github.com/sbvegan/attestation-station-interface"
+          href="https://attestationstation.xyz/"
         >
-          Github repository
+          AttestationStation Interface
         </Link>.
       </Body16>
 
