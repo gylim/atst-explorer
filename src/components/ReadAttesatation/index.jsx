@@ -133,7 +133,7 @@ const ReadAttestation = () => {
           />
         </FormRow>
 
-        <PrimaryButton type='button' onClick={handleSearch} disabled={!isCreatorValid || !isAboutValid || !isKeyValid || !isTxHashValid}>
+        <PrimaryButton type='button' onClick={() => handleSearch()} disabled={!(isCreatorValid || isAboutValid || isKeyValid || isTxHashValid)}>
             Search
         </PrimaryButton>
         {data
