@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
+import { ethers } from 'ethers'
 import styled from 'styled-components'
-import { AttestationStationAddress } from '../../constants/addresses'
 
 import { H2, Body12, Body14, Body16Bold } from '../OPStyledTypography'
 import { CardBody, CardRow, CardTable } from '../Table'
@@ -10,142 +10,150 @@ const HomeContainer = styled.div`
   flex-direction: column;
   box-sizing: border-box;
   text-align: left;
-  width: 672px;
+  width: 700px;
 `
 
-const SubSection = styled(Body16Bold)`
+const SubHeading = styled(Body16Bold)`
   margin: 0;
 `
 
-// const sqlQ1 =
-// `with base as (
-// select *,
-// regexp_substr_all(SUBSTR(DATA, 3, len(DATA)), '.{64}') AS segmented_data
-// from optimism.core.fact_event_logs
-// where block_timestamp > '2022-12-14'
-// and contract_address = '${AttestationStationAddress}'
-// and topics[0]::string = '0x28710dfecab43d1e29e02aa56b2e1e610c0bae19135c9cf7a83a1adb6df96d85'
-// )
-// , decoded AS (
-// select
-// block_number,
-// block_timestamp,
-// tx_hash,
-// origin_from_address,
-// origin_to_address,
-// event_index,
-// CONCAT('0x', SUBSTR(topics [1] :: STRING, 27, 40)) AS creator,
-// CONCAT('0x', SUBSTR(topics [2] :: STRING, 27, 40)) AS about,
-// replace(topics [3] :: STRING,'0x','') as key,
-// try_hex_decode_string(key::string) as decoded_key,
-// substr(data::string,131,(ethereum.public.udf_hex_to_int(segmented_data[1]::string) * 2)) as val,
-// try_hex_decode_string(val::string) as val_text
-//   from base
-//   )
-// SELECT
-//   decoded_key, val, val_text, about,
-//   block_timestamp, creator, tx_hash,
-//   origin_from_address, origin_to_address
-// FROM decoded
-// ORDER BY block_timestamp DESC
-// LIMIT 10`
-
 const Home = () => {
   const [results, setResults] = useState()
+  const [attested, setAttested] = useState()
+  const [creator, setCreator] = useState()
+
+  const recentTxn = async () => {
+    const options = { method: 'GET', headers: { accept: 'application/json' } }
+    fetch(`https://api.n.xyz/api/v1/dapp/attestationstation/Attestations?apikey=${process.env.REACT_APP_NXYZ_KEY}`, options)
+      .then(response => response.json())
+      .then(response => {
+        setResults(groupArray(response))
+      })
+      .catch(err => console.error(err))
+  }
 
   const truncateAdd = (address) => {
     return address.slice(0, 6) + '...' + address.slice(-4)
   }
 
-  const query = {
-    sql: `SELECT
-    nft_address,
-    mint_price_eth,
-    mint_price_usd
-    FROM ethereum.core.ez_nft_mints
-    LIMIT 2`,
-    ttlMinutes: 15,
-    cache: true
-  }
-
-  const createQuery = async () => {
-    const optionsA = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'x-api-key': process.env.REACT_APP_SHROOM_API_KEY
-      },
-      body: JSON.stringify(query)
+  const hexToAscii = (str) => {
+    let output = ''
+    for (let n = 0; n < str.length; n += 2) {
+      output += String.fromCharCode(parseInt(str.substr(n, 2), 16))
     }
-    const response = await fetch('https://node-api.flipsidecrypto.com/queries', optionsA)
-    if (!response.ok) {
-      console.error(`Error creating query, status ${response.status}. Response: ${response.text()}`)
-      return
-    }
-    const output = await response.json()
     return output
   }
 
-  const getQueryResult = async (token) => {
-    const optionsB = {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-        'x-api-key': process.env.REACT_APP_SHROOM_API_KEY
+  const groupArray = (arr) => {
+    const ans = []
+    for (let i = 0; i < arr.length; i++) {
+      const lastIdx = ans.length - 1
+      if (lastIdx !== -1 && arr[i].transactionHash === ans[lastIdx].transactionHash) {
+        if (typeof ans[lastIdx].key === 'string') {
+          ans[lastIdx].key = [ans[lastIdx].key, arr[i].key]
+          ans[lastIdx].val = [ans[lastIdx].val, arr[i].val]
+        } else {
+          ans[lastIdx].key.push(arr[i].key)
+          ans[lastIdx].val.push(arr[i].val)
+        }
+      } else {
+        ans.push(arr[i])
       }
     }
-    const response = await fetch(`https://node-api.flipsidecrypto.com/queries/${token}`, optionsB)
-    if (!response.ok) {
-      console.error(`Error retrieving result, status ${response.status}. Response: ${response.text()}`)
-      return
-    }
-    const output = await response.json()
-    return output
+    return ans
+  }
+
+  const mostAttested = async () => {
+    const options = { method: 'GET', headers: { accept: 'application/json' } }
+    fetch(`https://api.n.xyz/api/v1/dapp/attestationstation/SubjectStats?apikey=${process.env.REACT_APP_NXYZ_KEY}`, options)
+      .then(response => response.json())
+      .then(response => {
+        setAttested(response.slice(0, 6))
+      })
+      .catch(err => console.error(err))
+  }
+
+  const mostCreated = async () => {
+    const options = { method: 'GET', headers: { accept: 'application/json' } }
+    fetch(`https://api.n.xyz/api/v1/dapp/attestationstation/CreatorStats?apikey=${process.env.REACT_APP_NXYZ_KEY}`, options)
+      .then(response => response.json())
+      .then(response => {
+        setCreator(response.slice(0, 6))
+      })
+      .catch(err => console.error(err))
   }
 
   useEffect(() => {
-    const reply = createQuery()
-    console.log(reply)
-    const token = reply.token
-    setTimeout(() => {
-      const result = getQueryResult(token)
-      setResults(result)
-    }, 10000)
+    recentTxn()
+    mostAttested()
+    mostCreated()
   }, [])
 
   return (
         <>
-            <HomeContainer>
-                <H2>Home</H2>
-                <SubSection>Last 10 Attesations</SubSection>
+          <HomeContainer>
+              <H2>Home</H2>
+              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+                <SubHeading>Most Attested About</SubHeading>
+                <SubHeading>Most Prolific Creator</SubHeading>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
                 <CardTable>
-                    <CardBody>
-                      <CardRow>Testing
-                        <Body14>{truncateAdd(AttestationStationAddress)}</Body14>
-                        <Body12>{results ? JSON.stringify(results) : ''}</Body12>
-                      </CardRow>
-                    {/* {results && results.records.map((ele, idx, arr) => (<>
-                        <CardRow key={ele.tx_hash}>
-                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', marginRight: '5rem' }}>
-                                <Body12><strong>From:</strong> {truncateAdd(ele.creator)}</Body12>
-                                <Body12><strong>About:</strong> {truncateAdd(ele.about)}</Body12>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center' }}>
-                                <Body14>{ele.decoded_key}</Body14>
-                                <Body14>{ele.val_text}</Body14>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'flex-end', marginLeft: '5rem' }}>
-                                <Body12>{ele.block_timestamp.split('T')[0]}</Body12>
-                                <Body12>{ele.block_timestamp.split('T')[1].slice(0, -8)}Z</Body12>
-                            </div>
+                  <CardBody>
+                    {attested && attested.map((ele, idx, arr) => (
+                      <>
+                        <CardRow>
+                          <div style={{ display: 'flex', flexDirection: 'row' }}>
+                            <Body14 style={{ marginRight: '3rem' }}>{idx + 1}.</Body14>
+                            <Body14 style={{ marginRight: '3rem' }}>{truncateAdd(ele.about)}</Body14>
+                            <Body14><strong>Count:</strong> {ele.attestationCount}</Body14>
+                          </div>
                         </CardRow>
                         {idx < arr.length - 1 ? <hr style={{ color: '#ffffff' }}/> : <></>}
-                    </>))} */}
-                    </CardBody>
+                      </>
+                    ))}
+                  </CardBody>
                 </CardTable>
-            </HomeContainer>
+                <CardTable>
+                  <CardBody>
+                    {creator && creator.map((ele, idx, arr) => (
+                        <>
+                          <CardRow>
+                            <div style={{ display: 'flex', flexDirection: 'row' }}>
+                              <Body14 style={{ marginRight: '3rem' }}>{idx + 1}.</Body14>
+                              <Body14 style={{ marginRight: '3rem' }}>{truncateAdd(ele.creator)}</Body14>
+                              <Body14><strong>Count:</strong> {ele.attestationCount}</Body14>
+                            </div>
+                          </CardRow>
+                          {idx < arr.length - 1 ? <hr style={{ color: '#ffffff' }}/> : <></>}
+                        </>
+                    ))}
+                  </CardBody>
+                </CardTable>
+              </div>
+              <SubHeading style={{ margin: 'auto' }}>Latest Attesations</SubHeading>
+              <CardTable style={{ margin: 'auto' }}>
+                  <CardBody>
+                  {results && results.map((ele, idx, arr) => (<>
+                      <CardRow key={Object.keys(arr)[idx]}>
+                          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', marginRight: '5rem' }}>
+                              <Body12><strong>From:</strong> {truncateAdd(ele.creator)}</Body12>
+                              <Body12><strong>About:</strong> {truncateAdd(ele.about)}</Body12>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center' }}>
+                              <Body14>{typeof ele.key === 'object' ? '...multi-keys...' : ethers.utils.parseBytes32String(ele.key)}</Body14>
+                              <Body14>{typeof ele.val === 'object' ? '...multi-value...' : hexToAscii(ele.val)}</Body14>
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'flex-end', marginLeft: '5rem' }}>
+                              <Body12>{ele.createdAtTimestamp.split('T')[0]}</Body12>
+                              <Body12>{ele.createdAtTimestamp.split('T')[1].slice(0, -8)}Z</Body12>
+                          </div>
+                      </CardRow>
+                      {idx < arr.length - 1 ? <hr style={{ color: '#ffffff' }}/> : <></>}
+                  </>))}
+                  </CardBody>
+              </CardTable>
+          </HomeContainer>
         </>
   )
 }

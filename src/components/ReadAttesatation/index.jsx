@@ -148,7 +148,7 @@ const ReadAttestation = () => {
           <CardHeader><H2>Results</H2></CardHeader>
           <CardBody>
             {data.map((ele, idx, arr) => (<>
-              <CardRow key={ele.transactionHash}>
+              <CardRow key={Object.keys(arr)[idx]}>
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', marginRight: '5rem' }}>
                   <Body12><strong>From:</strong> {truncateAdd(ele.creator)}</Body12>
                   <Body12><strong>About:</strong> {truncateAdd(ele.about)}</Body12>
