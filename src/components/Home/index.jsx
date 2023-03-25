@@ -107,10 +107,10 @@ const Home = () => {
 
   useEffect(() => {
     const reply = createQuery()
+    console.log(reply)
     const token = reply.token
     setTimeout(() => {
       const result = getQueryResult(token)
-      console.log(result)
       setResults(result)
     }, 10000)
   }, [])

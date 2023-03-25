@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@rainbow-me/rainbowkit": "^0.7.4",
-    "buffer": "^6.0.3",
     "ethers": "^5.7.2",
     "papaparse": "^5.4.0",
     "react": "^18.2.0",

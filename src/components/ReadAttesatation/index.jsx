@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-import { Buffer } from 'buffer'
 // import styled from 'styled-components'
 // import { useContractRead } from 'wagmi'
 // import { AttestationStationAddress } from '../../constants/addresses'
@@ -67,6 +66,14 @@ const ReadAttestation = () => {
 
   const truncateAdd = (address) => {
     return address.slice(0, 6) + '...' + address.slice(-4)
+  }
+
+  const hexToAscii = (str) => {
+    let output = ''
+    for (let n = 0; n < str.length; n += 2) {
+      output += String.fromCharCode(parseInt(str.substr(n, 2), 16))
+    }
+    return output
   }
 
   useEffect(() => {
@@ -148,7 +155,7 @@ const ReadAttestation = () => {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center' }}>
                   <Body14>{ethers.utils.parseBytes32String(ele.key)}</Body14>
-                  <Body14>{Buffer.from(ele.val, 'utf8')}</Body14>
+                  <Body14>{hexToAscii(ele.val)}</Body14>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'flex-end', marginLeft: '5rem' }}>
                   <Body12>{ele.createdAtTimestamp.split('T')[0]}</Body12>
