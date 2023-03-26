@@ -9,7 +9,7 @@ export const FileInput = styled.input`
     isolation: isolate;
 
     /* 🌤️ $primary/600 (Default) */
-    background: #FF0420;
+    background: #FFFFFF;
     border: none;
     border-radius: 12px;
 
@@ -24,11 +24,11 @@ export const FileInput = styled.input`
     text-align: center;
 
     /* 🌤️ $neutral/0 (White) */
-    color: #FFFFFF;
+    color: #000000;
 
     &:hover {
         cursor: pointer;
-        background: #EB001A;
+        background: #EB9C1A;
     }
 
     &:disabled {

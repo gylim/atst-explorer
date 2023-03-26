@@ -4,6 +4,7 @@ import styled from 'styled-components'
 
 import { H2, Body12, Body14, Body16Bold } from '../OPStyledTypography'
 import { CardBody, CardRow, CardTable } from '../Table'
+import Tooltip from '../Tooltip'
 
 const HomeContainer = styled.div`
   display: flex;
@@ -15,6 +16,10 @@ const HomeContainer = styled.div`
 
 const SubHeading = styled(Body16Bold)`
   margin: 0;
+`
+
+const BlockLink = styled.a`
+  text-decoration: none;
 `
 
 const Home = () => {
@@ -97,35 +102,39 @@ const Home = () => {
                 <SubHeading>Most Attested About</SubHeading>
                 <SubHeading>Most Prolific Creator</SubHeading>
               </div>
-              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around' }}>
+              <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-around', marginBottom: '1rem' }}>
                 <CardTable>
                   <CardBody>
-                    {attested && attested.map((ele, idx, arr) => (
+                    {attested && attested.map((ele, idx) => (
                       <>
                         <CardRow>
                           <div style={{ display: 'flex', flexDirection: 'row' }}>
                             <Body14 style={{ marginRight: '3rem' }}>{idx + 1}.</Body14>
-                            <Body14 style={{ marginRight: '3rem' }}>{truncateAdd(ele.about)}</Body14>
+                            <a href={`https://optimistic.etherscan.io/address/${ele.about}`} target='_blank' rel='noopener noreferrer'>
+                              <Body14 style={{ marginRight: '3rem' }}>{truncateAdd(ele.about)}</Body14>
+                            </a>
                             <Body14><strong>Count:</strong> {ele.attestationCount}</Body14>
                           </div>
                         </CardRow>
-                        {idx < arr.length - 1 ? <hr style={{ color: '#ffffff' }}/> : <></>}
+                        <hr style={{ color: '#ffffff' }}/>
                       </>
                     ))}
                   </CardBody>
                 </CardTable>
                 <CardTable>
                   <CardBody>
-                    {creator && creator.map((ele, idx, arr) => (
+                    {creator && creator.map((ele, idx) => (
                         <>
                           <CardRow>
                             <div style={{ display: 'flex', flexDirection: 'row' }}>
                               <Body14 style={{ marginRight: '3rem' }}>{idx + 1}.</Body14>
-                              <Body14 style={{ marginRight: '3rem' }}>{truncateAdd(ele.creator)}</Body14>
+                              <a href={`https://optimistic.etherscan.io/address/${ele.creator}`} target='_blank' rel='noopener noreferrer'>
+                                <Body14 style={{ marginRight: '3rem' }}>{truncateAdd(ele.creator)}</Body14>
+                              </a>
                               <Body14><strong>Count:</strong> {ele.attestationCount}</Body14>
                             </div>
                           </CardRow>
-                          {idx < arr.length - 1 ? <hr style={{ color: '#ffffff' }}/> : <></>}
+                          <hr style={{ color: '#ffffff' }}/>
                         </>
                     ))}
                   </CardBody>
@@ -134,15 +143,27 @@ const Home = () => {
               <SubHeading style={{ margin: 'auto' }}>Latest Attesations</SubHeading>
               <CardTable style={{ margin: 'auto' }}>
                   <CardBody>
-                  {results && results.map((ele, idx, arr) => (<>
-                      <CardRow key={Object.keys(arr)[idx]}>
+                  {results && results.map((ele, idx, arr) => (<BlockLink key={Object.keys(arr)[idx]} href={`https://optimistic.etherscan.io/tx/${ele.transactionHash}`} target='_blank' rel='noopener noreferrer'>
+                      <CardRow>
                           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', marginRight: '5rem' }}>
                               <Body12><strong>From:</strong> {truncateAdd(ele.creator)}</Body12>
                               <Body12><strong>About:</strong> {truncateAdd(ele.about)}</Body12>
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'center' }}>
-                              <Body14>{typeof ele.key === 'object' ? '...multi-keys...' : ethers.utils.parseBytes32String(ele.key)}</Body14>
-                              <Body14>{typeof ele.val === 'object' ? '...multi-value...' : hexToAscii(ele.val)}</Body14>
+                              {typeof ele.key === 'object'
+                                ? <Body14>...multi-keys...<Tooltip><ul>
+                                {ele.key.map((key, idx, arr) =>
+                                  (<li key={Object.keys(arr)[idx]}>{ethers.utils.parseBytes32String(key)}</li>)
+                                )}
+                                </ul></Tooltip></Body14>
+                                : <Body14>{ethers.utils.parseBytes32String(ele.key)}</Body14>}
+                              {typeof ele.val === 'object'
+                                ? <Body14>...multi-value...<Tooltip><ul>
+                                {ele.val.map((val, idx, arr) =>
+                                  (<li key={Object.keys(arr)[idx]}>{hexToAscii(val)}</li>)
+                                )}
+                                </ul></Tooltip></Body14>
+                                : <Body14>{hexToAscii(ele.val)}</Body14>}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', alignItems: 'flex-end', marginLeft: '5rem' }}>
                               <Body12>{ele.createdAtTimestamp.split('T')[0]}</Body12>
@@ -150,7 +171,7 @@ const Home = () => {
                           </div>
                       </CardRow>
                       {idx < arr.length - 1 ? <hr style={{ color: '#ffffff' }}/> : <></>}
-                  </>))}
+                  </BlockLink>))}
                   </CardBody>
               </CardTable>
           </HomeContainer>

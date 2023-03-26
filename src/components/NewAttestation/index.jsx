@@ -205,14 +205,6 @@ const NewAttestation = () => {
     checkMultiAttest(CSVData)
   }, [CSVData])
 
-  useEffect(() => {
-    console.log(...attestations)
-  }, [attestations])
-
-  const printData = () => {
-    return CSVData ? <Body18>{JSON.stringify(CSVData, null, 1)}</Body18> : <Body18>No File Loaded</Body18>
-  }
-
   const printErr = () => {
     if (CSVData && validateErr) return <Body18>{validateErr}</Body18>
     else if (CSVData && isAllValid) return <Body18>All data checked correct!</Body18>
@@ -373,14 +365,12 @@ const NewAttestation = () => {
               <FileInput type='file' onChange={(e) => setFile(e.target.files[0])}/>
             </FormRow>
             <FormRow>
+              {printErr()}
               <PrimaryButton type='button' onClick={parsing}>Parse CSV</PrimaryButton>
             </FormRow>
 
-            {printData()}
-            {printErr()}
-
             <FormButton>
-              <PrimaryButton disabled={!write2 || isLoading2} type='button' onClick={() => write2?.()}>
+              <PrimaryButton disabled={!write2 || isLoading2 || !isAllValid} type='button' onClick={() => write2?.()}>
                 {isLoading2 ? 'Making Multi-attest' : 'Make Multi-attest'}
               </PrimaryButton>
             </FormButton>

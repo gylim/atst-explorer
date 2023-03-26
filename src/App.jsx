@@ -32,7 +32,7 @@ const { chains, provider, webSocketProvider } = configureChains(
 )
 
 const { connectors } = getDefaultWallets({
-  appName: 'Attestation Station Interface',
+  appName: 'Attestation Station Explorer',
   chains
 })
 
