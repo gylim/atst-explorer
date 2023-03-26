@@ -26,3 +26,11 @@ export const FormLabel = styled.div`
   height: 24px;
   text-align: right;
 `
+
+export const FormButton = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 28px 0px 0px;
+  width: 672px;
+`

@@ -1,28 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
-// import styled from 'styled-components'
-// import { useContractRead } from 'wagmi'
-// import { AttestationStationAddress } from '../../constants/addresses'
-// import AttestationStationABI from '../../constants/abi.json'
 
 import { PrimaryButton } from '../OPStyledButton'
-import { AttestForm, FormRow, FormLabel } from '../StyledFormComponents'
+import { AttestForm, FormRow, FormLabel, FormButton } from '../StyledFormComponents'
 import { TextInput } from '../OPStyledTextInput'
 import { H2, Body14, Body12 } from '../OPStyledTypography'
 import { CardBody, CardHeader, CardRow, CardTable } from '../Table'
-
-// const Textarea = styled.textarea`
-//   align-items: center;
-//   border: 1px solid #cbd5e0;
-//   border-radius: 12px;
-//   box-sizing: border-box;
-//   font-size: 14px;
-//   margin: 8px 0;
-//   outline-style: none;
-//   padding: 9px 12px;
-//   width: 456px;
-//   resize:none;
-// `
 
 const ReadAttestation = () => {
   const [creator, setCreator] = useState('')
@@ -59,7 +42,9 @@ const ReadAttestation = () => {
     fetch(composeURL(), options)
       .then(response => response.json())
       .then(response => {
-        setData(response)
+        console.log(response)
+        if (typeof response === 'object') setData(...response)
+        else setData(response)
       })
       .catch(error => (err = error))
   }
@@ -140,14 +125,18 @@ const ReadAttestation = () => {
           />
         </FormRow>
 
-        <PrimaryButton type='button' onClick={() => handleSearch()} disabled={!(isCreatorValid || isAboutValid || isKeyValid || isTxHashValid)}>
-            Search
-        </PrimaryButton>
+        <FormButton>
+          <PrimaryButton type='button' onClick={() => handleSearch()} disabled={!(isCreatorValid || isAboutValid || isKeyValid || isTxHashValid)}>
+              Search
+          </PrimaryButton>
+        </FormButton>
         {data
           ? <CardTable>
           <CardHeader><H2>Results</H2></CardHeader>
           <CardBody>
-            {data.map((ele, idx, arr) => (<>
+            {typeof data === 'string'
+              ? 'Not Found!'
+              : data.map((ele, idx, arr) => (<>
               <CardRow key={Object.keys(arr)[idx]}>
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', marginRight: '5rem' }}>
                   <Body12><strong>From:</strong> {truncateAdd(ele.creator)}</Body12>

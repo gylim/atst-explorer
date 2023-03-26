@@ -11,7 +11,7 @@ import Papa from 'papaparse'
 import { AttestationStationAddress } from '../../constants/addresses'
 import AttestationStationABI from '../../constants/abi.json'
 
-import { AttestForm, FormRow, FormLabel } from '../StyledFormComponents'
+import { AttestForm, FormRow, FormLabel, FormButton } from '../StyledFormComponents'
 import Tooltip from '../Tooltip'
 import { H2, Body18 } from '../OPStyledTypography'
 import { TextInput } from '../OPStyledTextInput'
@@ -21,14 +21,6 @@ import { FileInput } from '../OPStyledFileInput'
 
 const AttestationTypeSelect = styled(Select)`
   color: ${props => (props.value === 'default' ? '#8496AE' : 'inherit')}
-`
-
-const FormButton = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  padding: 28px 0px 0px;
-  width: 672px;
 `
 
 const HashedKey = styled.textarea`
