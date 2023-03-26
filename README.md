@@ -1,12 +1,13 @@
 # Attestation Station Explorer
 An open source explorer for Optimism's AttestationStation -- a data primative for making arbitrary attestations about Ethereum addresses -- [OP Labs' Official Documentation](https://community.optimism.io/docs/governance/attestation-station/#).
 
-[![attestationstation-interface](./attestationstation-interface.png)](https://youtu.be/rBesMSd0GzM)
+[![attestationstation-explorer](./attestationstation-explorer.png)]
 
 ## Key Features
 
-- Make attestations to Optimism's AttestationStation
-- Read raw hex and string formatted attestation values
+- Make single or batch attestations to Optimism's AttestationStation
+- Search for attestations
+- View the latest attestation stats
 
 ## Run Locally
 

@@ -89,9 +89,10 @@ const Home = () => {
   }
 
   useEffect(() => {
-    recentTxn()
     mostAttested()
     mostCreated()
+    const timer = setTimeout(() => recentTxn(), 1200)
+    return () => clearTimeout(timer)
   }, [])
 
   return (
@@ -107,7 +108,7 @@ const Home = () => {
                   <CardBody>
                     {attested && attested.map((ele, idx) => (
                       <>
-                        <CardRow>
+                        <CardRow key={idx}>
                           <div style={{ display: 'flex', flexDirection: 'row' }}>
                             <Body14 style={{ marginRight: '3rem' }}>{idx + 1}.</Body14>
                             <a href={`https://optimistic.etherscan.io/address/${ele.about}`} target='_blank' rel='noopener noreferrer'>
@@ -125,7 +126,7 @@ const Home = () => {
                   <CardBody>
                     {creator && creator.map((ele, idx) => (
                         <>
-                          <CardRow>
+                          <CardRow key={idx}>
                             <div style={{ display: 'flex', flexDirection: 'row' }}>
                               <Body14 style={{ marginRight: '3rem' }}>{idx + 1}.</Body14>
                               <a href={`https://optimistic.etherscan.io/address/${ele.creator}`} target='_blank' rel='noopener noreferrer'>
